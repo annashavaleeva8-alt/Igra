@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5" />
+  <meta name="theme-color" content="#2d1b4e" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="description" content="Быстрая игра для глаз — дети и взрослые." />
+  <title>Квест для глаз</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app" id="app-root">
+    <div class="decor" aria-hidden="true">
+      <span class="decor__star decor__star--1">✦</span>
+      <span class="decor__star decor__star--2">✧</span>
+      <span class="decor__star decor__star--3">✦</span>
+    </div>
+
+    <header class="header">
+      <div class="header__brand">
+        <span class="header__mascot" aria-hidden="true">👁️</span>
+        <div>
+          <p class="header__title">Глаза</p>
+          <p class="header__subtitle">Алина Рустемовна</p>
+        </div>
+      </div>
+      <p class="header__doctor">👆 <strong>кто играет?</strong></p>
+    </header>
+
+    <main class="main">
+      <section id="screen-welcome" class="screen screen--active" aria-live="polite">
+        <div class="card card--hero">
+          <p class="hero__icons" aria-hidden="true">🚀 ⭐ 🎨</p>
+          <h1 class="hero__heading">Нажми картинки — почти без слов</h1>
+          <p class="hero__one">Игра, не врач. Выбери режим:</p>
+
+          <div class="pick-row">
+            <button type="button" class="pick pick--kids" id="btn-kids" aria-label="Режим для детей">
+              <span class="pick__big">🧒</span>
+              <span class="pick__txt">Дети</span>
+              <span class="pick__sub">ракета · крупно</span>
+            </button>
+            <button type="button" class="pick pick--adult" id="btn-adult" aria-label="Режим для взрослых">
+              <span class="pick__big">🧑</span>
+              <span class="pick__txt">Взрослые</span>
+              <span class="pick__sub">маяк · C · таблица букв</span>
+            </button>
+          </div>
+
+          <p class="disclaimer">Не диагноз. Боль / двоение — к врачу.</p>
+        </div>
+      </section>
+
+      <section id="screen-game" class="screen" hidden>
+        <div class="game-hud">
+          <div class="game-hud__top">
+            <div class="progress">
+              <div class="progress__track">
+                <div class="progress__fill" id="progress-fill"></div>
+              </div>
+            </div>
+            <button type="button" class="btn-sound" id="btn-sound" aria-pressed="false" title="Звук при верном ответе">🔇</button>
+          </div>
+          <p class="progress__label" id="progress-label">🚀</p>
+        </div>
+
+        <div class="card card--game">
+          <p class="game__level-title" id="game-level-title">🚀</p>
+          <p class="game__hint" id="game-hint"></p>
+
+          <div class="game__body" id="game-body"></div>
+
+          <div class="game__actions" id="game-actions"></div>
+        </div>
+      </section>
+
+      <section id="screen-result" class="screen" hidden>
+        <div class="card card--result">
+          <p class="result__badge" id="result-badge" aria-hidden="true">🏅</p>
+          <h2 class="result__heading" id="result-heading"></h2>
+          <p class="result__stars" id="result-stars" aria-hidden="true"></p>
+          <p class="result__tier" id="result-tier"></p>
+          <p class="result__text" id="result-text"></p>
+          <div class="cta" id="запись">
+            <p class="cta__title">📅 Запись</p>
+            <p class="cta__text">Точно — только у офтальмолога.</p>
+            <a class="btn btn--primary btn--xl" id="cta-book" href="#запись">Записаться</a>
+            <a class="btn btn--ghost btn--xl" id="cta-tel" href="tel:+70000000000">Позвонить</a>
+          </div>
+          <button type="button" class="btn btn--link" id="btn-replay">Заново</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Держи телефон чуть дальше глаз.</p>
+    </footer>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>

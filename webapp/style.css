@@ -1,0 +1,236 @@
+/* === EyeQuest / веб-приложение: визуальный слой === */
+:root {
+  --bg: #0b0f1a;
+  --card: rgba(255, 255, 255, 0.06);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --primary-from: #3b82f6;
+  --primary-to: #2563eb;
+  --glow: rgba(59, 130, 246, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.45;
+}
+
+#app {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: max(16px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+/* экран */
+.screen {
+  padding: 8px 0 20px;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.screen h1 {
+  margin: 0 0 8px;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.screen h2 {
+  margin: 0 0 12px;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.screen h3 {
+  margin: 0 0 16px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.screen > p:first-of-type {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.tagline {
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin-bottom: 4px !important;
+}
+
+.doctor {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0 !important;
+}
+
+.doctor strong {
+  color: #e2e8f0;
+}
+
+/* анимации экрана */
+.fade-in {
+  animation: fadeIn 0.35s ease forwards;
+}
+
+.fade-out {
+  animation: fadeOut 0.2s ease forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* карточки */
+.card {
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 16px;
+  animation: popIn 0.35s ease both;
+}
+
+.card p {
+  margin: 0 0 12px;
+  color: #cbd5e1;
+  font-size: 0.95rem;
+}
+
+.card p:last-child {
+  margin-bottom: 0;
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* кнопки */
+button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:first-of-type {
+  margin-top: 0;
+}
+
+button:active {
+  transform: scale(0.96);
+}
+
+.primary {
+  background: linear-gradient(135deg, var(--primary-from), var(--primary-to));
+  color: white;
+  box-shadow: 0 8px 24px var(--glow);
+}
+
+.secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* буквы в игре */
+.letters-display {
+  font-size: clamp(1.75rem, 8vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-align: center;
+  padding: 24px 12px;
+  font-family: ui-monospace, monospace;
+  color: #f1f5f9;
+  user-select: none;
+}
+
+.round-label {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* прогресс */
+.progress {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-from), #60a5fa);
+  border-radius: 10px;
+  transition: width 0.35s ease;
+}
+
+.hud-meta {
+  margin: 0 0 16px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* результат — бейдж */
+.result-badge {
+  font-size: 2.5rem;
+  margin: 0 0 8px;
+  line-height: 1;
+}
+
+.skills-line {
+  font-size: 0.95rem;
+  color: #cbd5e1;
+  line-height: 1.7;
+}
+
+.footer-note {
+  margin-top: 28px;
+  text-align: center;
+  font-size: 0.72rem;
+  color: #64748b;
+}
