@@ -516,6 +516,19 @@ body {
   overflow-wrap: break-word;
 }
 
+.game__mood {
+  margin: -0.25rem 0 0.75rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f8f5ff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-align: center;
+  animation: mood-pop 0.3s ease;
+}
+
 .app--adult .game__hint {
   font-size: 0.88rem;
 }
@@ -875,6 +888,76 @@ body {
   }
 }
 
+@keyframes mood-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.app--flash-ok .card--game {
+  animation: card-good 0.42s ease;
+}
+
+.app--flash-bad .card--game {
+  animation: card-soft-shake 0.36s ease;
+}
+
+@keyframes card-good {
+  0% {
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35), 0 0 0 rgba(124, 245, 214, 0);
+  }
+  45% {
+    transform: translateY(-2px);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35), 0 0 38px rgba(124, 245, 214, 0.42);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes card-soft-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(-4px);
+  }
+  60% {
+    transform: translateX(4px);
+  }
+}
+
+.confetti-piece {
+  position: absolute;
+  top: 3.5rem;
+  z-index: 5;
+  width: 9px;
+  height: 14px;
+  border-radius: 3px;
+  pointer-events: none;
+  animation: confetti-fall 1s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+
+@keyframes confetti-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -12px, 0) rotate(0);
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--x), 180px, 0) rotate(var(--r));
+  }
+}
+
 .feedback--ok {
   color: var(--accent);
   background: rgba(124, 245, 214, 0.15);
@@ -893,6 +976,17 @@ body {
   margin: 0;
   font-size: 3rem;
   line-height: 1;
+  animation: trophy-bounce 1.4s ease-in-out infinite;
+}
+
+@keyframes trophy-bounce {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(2deg);
+  }
 }
 
 .result__heading {

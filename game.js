@@ -41,6 +41,8 @@
     phaseIndex: 0,
     roundInPhase: 0,
     score: 0,
+    streak: 0,
+    bestStreak: 0,
     isKids: true,
     soundOn: false,
     answerId: null,
@@ -87,6 +89,7 @@
     progressLabel: document.getElementById("progress-label"),
     levelTitle: document.getElementById("game-level-title"),
     hint: document.getElementById("game-hint"),
+    mood: document.getElementById("game-mood"),
     body: document.getElementById("game-body"),
     actions: document.getElementById("game-actions"),
     resultBadge: document.getElementById("result-badge"),
@@ -282,6 +285,59 @@
       a[j] = t;
     }
     return a;
+  }
+
+  function phaseMoodText() {
+    var id = PHASES[state.phaseIndex].id;
+    var kids = {
+      rocket: ["Пилот, курс выбран!", "Ракета ждёт команду.", "Смотри на нос ракеты."],
+      stars: ["Космос подмигивает.", "Найди самую яркую.", "Звёзды любят внимательных."],
+      odd: ["Кто тут спрятался?", "Один дружок не такой.", "Поймай отличника."],
+      color: ["Цветовой радар включён.", "Ищем близнеца цвета.", "Глаз-художник, твой выход."]
+    };
+    var adult = {
+      rocket: ["Кольцо C, спокойный фокус.", "Смотри на зазор, не спеши.", "Мини-тренировка внимания."],
+      microtext: ["Режим детектива: мелкий шрифт.", "Не щуримся, просто пробуем.", "Глаза читают, мозг выбирает."],
+      chart: ["Почти кабинет окулиста, но веселее.", "Ищем строку-самозванца.", "Буквы притворяются одинаковыми."],
+      color: ["Проверка оттенков без занудства.", "Цветовой нюанс на горизонте.", "Поймай точный оттенок."]
+    };
+    var list = (state.isKids ? kids : adult)[id] || ["Вперёд!"];
+    return list[state.roundInPhase % list.length];
+  }
+
+  function updateMood(extra) {
+    if (!el.mood) return;
+    var text = extra || phaseMoodText();
+    if (state.streak >= 2 && !extra) {
+      text += " Серия x" + state.streak + "!";
+    }
+    el.mood.textContent = text;
+  }
+
+  function flashGame(ok) {
+    el.app.classList.remove("app--flash-ok", "app--flash-bad");
+    void el.app.offsetWidth;
+    el.app.classList.add(ok ? "app--flash-ok" : "app--flash-bad");
+  }
+
+  function burstConfetti(amount) {
+    var colors = ["#7cf5d6", "#ffd166", "#ff7b9c", "#93c5fd", "#f8f5ff"];
+    var count = amount || 14;
+    for (var i = 0; i < count; i++) {
+      var piece = document.createElement("span");
+      piece.className = "confetti-piece";
+      piece.style.left = randomInt(12, 88) + "%";
+      piece.style.setProperty("--x", randomInt(-80, 80) + "px");
+      piece.style.setProperty("--r", randomInt(-160, 160) + "deg");
+      piece.style.background = colors[i % colors.length];
+      piece.style.animationDelay = randomInt(0, 160) + "ms";
+      el.app.appendChild(piece);
+      (function (node) {
+        setTimeout(function () {
+          if (node.parentNode) node.parentNode.removeChild(node);
+        }, 1200);
+      })(piece);
+    }
   }
 
   function copyForPhase() {
@@ -652,6 +708,12 @@
 
   function pickFeedback(ok) {
     if (ok) {
+      if (state.streak >= 5) {
+        return state.isKids ? "Вау, серия x" + state.streak + "!" : "Серия x" + state.streak + ". Отличный фокус.";
+      }
+      if (state.streak >= 3) {
+        return state.isKids ? "Комбо x" + state.streak + "!" : "Комбо x" + state.streak + ".";
+      }
       return state.isKids
         ? ["Ура!", "Класс!", "Супер!", "Есть!"][randomInt(0, 3)]
         : ["Верно.", "Так.", "Ок.", "Точно."][randomInt(0, 3)];
@@ -663,7 +725,16 @@
 
   function showFeedback(ok, then) {
     if (ok) {
+      state.streak++;
+      if (state.streak > state.bestStreak) state.bestStreak = state.streak;
       playClick();
+      flashGame(true);
+      updateMood(state.streak >= 3 ? "Серия x" + state.streak + " — красиво!" : "Попадание!");
+      if (state.streak >= 3) burstConfetti(8);
+    } else {
+      state.streak = 0;
+      flashGame(false);
+      updateMood(state.isKids ? "Ничего, летим дальше." : "Нормально, продолжаем спокойно.");
     }
     el.actions.innerHTML = "";
     el.actions.className = "game__actions";
@@ -683,6 +754,7 @@
     else if (id === "chart") phaseChart();
     else if (id === "odd") phaseOdd();
     else phaseColor();
+    updateMood();
   }
 
   function nextRound() {
@@ -732,13 +804,14 @@
     el.resultStars.textContent = stars;
     el.resultHeading.textContent = state.score + " / " + max;
     el.resultTier.textContent = tier;
-    el.resultText.textContent = body;
+    el.resultText.textContent = body + " Лучшая серия: " + state.bestStreak + ".";
 
     el.ctaBook.href = CONFIG.bookUrl;
     el.ctaTel.href = CONFIG.phone;
 
     stopMusic();
     showScreen("result");
+    burstConfetti(ratio >= 0.55 ? 34 : 18);
   }
 
   function startGame(isKids) {
@@ -750,6 +823,8 @@
     state.phaseIndex = 0;
     state.roundInPhase = 0;
     state.score = 0;
+    state.streak = 0;
+    state.bestStreak = 0;
     el.progressFill.style.width = "0%";
     showScreen("game");
     renderPhase();
