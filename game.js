@@ -31,7 +31,6 @@
   var PHASE_ICON = {
     rocket: "🚀",
     stars: "⭐",
-    beacon: "📡",
     microtext: "🔤",
     chart: "АБ",
     odd: "🔍",
@@ -50,6 +49,29 @@
   };
 
   var audioCtx = null;
+  var musicMasterGain = null;
+
+  /** Спокойная пентатоническая мелодия (до-мажор), частота Гц / длительность мс */
+  var MUSIC_PATTERN = [
+    { f: 523.25, d: 950 },
+    { f: 659.25, d: 950 },
+    { f: 587.33, d: 950 },
+    { f: 392.0, d: 1200 },
+    { f: 440.0, d: 950 },
+    { f: 523.25, d: 950 },
+    { f: 587.33, d: 950 },
+    { f: 659.25, d: 1400 },
+    { f: 392.0, d: 950 },
+    { f: 440.0, d: 950 },
+    { f: 392.0, d: 950 },
+    { f: 329.63, d: 1700 }
+  ];
+
+  var music = {
+    active: false,
+    timeoutId: null,
+    patternIndex: 0
+  };
 
   var el = {
     app: document.getElementById("app-root"),
@@ -60,6 +82,7 @@
     btnAdult: document.getElementById("btn-adult"),
     btnReplay: document.getElementById("btn-replay"),
     btnSound: document.getElementById("btn-sound"),
+    btnBack: document.getElementById("btn-back"),
     progressFill: document.getElementById("progress-fill"),
     progressLabel: document.getElementById("progress-label"),
     levelTitle: document.getElementById("game-level-title"),
@@ -107,6 +130,85 @@
     o.stop(t0 + 0.075);
   }
 
+  function ensureMusicBus() {
+    if (!audioCtx) return null;
+    if (!musicMasterGain) {
+      musicMasterGain = audioCtx.createGain();
+      musicMasterGain.gain.value = 0.55;
+      musicMasterGain.connect(audioCtx.destination);
+    }
+    return musicMasterGain;
+  }
+
+  function playMusicNote(freq) {
+    var ctx = audioCtx;
+    var bus = ensureMusicBus();
+    if (!ctx || !bus) return;
+    var t = ctx.currentTime;
+    var o = ctx.createOscillator();
+    var g = ctx.createGain();
+    o.type = "sine";
+    o.frequency.value = freq;
+    o.connect(g);
+    g.connect(bus);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.045, t + 0.35);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
+    o.start(t);
+    o.stop(t + 1.7);
+
+    var oh = ctx.createOscillator();
+    var gh = ctx.createGain();
+    oh.type = "sine";
+    oh.frequency.value = freq * 2;
+    oh.connect(gh);
+    gh.connect(bus);
+    gh.gain.setValueAtTime(0.0001, t);
+    gh.gain.exponentialRampToValueAtTime(0.012, t + 0.4);
+    gh.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
+    oh.start(t);
+    oh.stop(t + 1.5);
+  }
+
+  function scheduleNextMusicNote() {
+    if (!music.active || !state.soundOn) return;
+    var step = MUSIC_PATTERN[music.patternIndex % MUSIC_PATTERN.length];
+    music.patternIndex++;
+    playMusicNote(step.f);
+    music.timeoutId = setTimeout(scheduleNextMusicNote, step.d);
+  }
+
+  function startMusic() {
+    if (!state.soundOn) return;
+    var ctx = ensureAudio();
+    if (!ctx) return;
+    if (ctx.state === "suspended") ctx.resume();
+    if (music.active) return;
+    music.active = true;
+    music.patternIndex = 0;
+    if (musicMasterGain) {
+      var t = ctx.currentTime;
+      musicMasterGain.gain.cancelScheduledValues(t);
+      musicMasterGain.gain.setValueAtTime(0.0001, t);
+      musicMasterGain.gain.exponentialRampToValueAtTime(0.55, t + 1.2);
+    }
+    scheduleNextMusicNote();
+  }
+
+  function stopMusic() {
+    music.active = false;
+    if (music.timeoutId) {
+      clearTimeout(music.timeoutId);
+      music.timeoutId = null;
+    }
+    if (audioCtx && musicMasterGain) {
+      var t = audioCtx.currentTime;
+      musicMasterGain.gain.cancelScheduledValues(t);
+      musicMasterGain.gain.setValueAtTime(musicMasterGain.gain.value, t);
+      musicMasterGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+    }
+  }
+
   function loadSoundPref() {
     try {
       state.soundOn = window.localStorage.getItem(SOUND_KEY) === "1";
@@ -120,7 +222,7 @@
     if (!el.btnSound) return;
     el.btnSound.textContent = state.soundOn ? "🔊" : "🔇";
     el.btnSound.setAttribute("aria-pressed", state.soundOn ? "true" : "false");
-    el.btnSound.setAttribute("title", state.soundOn ? "Звук включён" : "Включить щелчок");
+    el.btnSound.setAttribute("title", state.soundOn ? "Звук и музыка включены" : "Включить звук и музыку");
   }
 
   function buildPhases() {
@@ -133,8 +235,7 @@
       ];
     } else {
       PHASES = [
-        { id: "beacon", rounds: 4 },
-        { id: "rocket", rounds: 5 },
+        { id: "rocket", rounds: 6 },
         { id: "microtext", rounds: 3 },
         { id: "chart", rounds: 4 },
         { id: "color", rounds: 2 },
@@ -188,9 +289,6 @@
     var k = state.isKids;
     if (id === "stars") {
       return { title: "⭐", hint: k ? "Самая яркая звезда" : "Самая контрастная" };
-    }
-    if (id === "beacon") {
-      return { title: "📡", hint: "Где пульс сильнее — нажми" };
     }
     if (id === "microtext") {
       return { title: "🔤", hint: "Три строки — одно слово. Какое?" };
@@ -261,40 +359,6 @@
   function onStarPick(ok) {
     if (ok) state.score++;
     showFeedback(ok, nextRound);
-  }
-
-  /** Взрослым вместо звёзд: «маяк» с пульсом */
-  function phaseBeacon() {
-    var copy = copyForPhase();
-    el.levelTitle.textContent = copy.title;
-    el.hint.textContent = copy.hint;
-    el.body.className = "game__body";
-    el.body.innerHTML = "";
-
-    var grid = document.createElement("div");
-    grid.className = "beacon-grid";
-    var hot = randomInt(0, 5);
-    state.answerId = "beacon-" + hot;
-
-    for (var i = 0; i < 6; i++) {
-      var btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "beacon-cell" + (i === hot ? " beacon-cell--hot" : "");
-      btn.setAttribute("aria-label", "Сигнал " + (i + 1));
-      btn.innerHTML = "<span aria-hidden=\"true\">📡</span>";
-      (function (idx) {
-        btn.addEventListener("click", function () {
-          var ok = idx === hot;
-          if (ok) state.score++;
-          showFeedback(ok, nextRound);
-        });
-      })(i);
-      grid.appendChild(btn);
-    }
-    el.body.appendChild(grid);
-
-    el.actions.innerHTML = "";
-    el.actions.className = "game__actions";
   }
 
   /** Взрослые: мелкий текст 3 строки + выбор слова */
@@ -614,7 +678,6 @@
     setProgress();
     var id = PHASES[state.phaseIndex].id;
     if (id === "stars") phaseStars();
-    else if (id === "beacon") phaseBeacon();
     else if (id === "microtext") phaseMicrotext();
     else if (id === "rocket") phaseRocket();
     else if (id === "chart") phaseChart();
@@ -674,6 +737,7 @@
     el.ctaBook.href = CONFIG.bookUrl;
     el.ctaTel.href = CONFIG.phone;
 
+    stopMusic();
     showScreen("result");
   }
 
@@ -689,6 +753,13 @@
     el.progressFill.style.width = "0%";
     showScreen("game");
     renderPhase();
+    if (state.soundOn) startMusic();
+  }
+
+  function backToWelcome() {
+    stopMusic();
+    el.app.classList.remove("app--kids", "app--adult");
+    showScreen("welcome");
   }
 
   el.btnKids.addEventListener("click", function () {
@@ -698,9 +769,14 @@
     startGame(false);
   });
   el.btnReplay.addEventListener("click", function () {
-    el.app.classList.remove("app--kids", "app--adult");
-    showScreen("welcome");
+    backToWelcome();
   });
+
+  if (el.btnBack) {
+    el.btnBack.addEventListener("click", function () {
+      backToWelcome();
+    });
+  }
 
   if (el.btnSound) {
     el.btnSound.addEventListener("click", function () {
@@ -714,6 +790,9 @@
       if (state.soundOn) {
         ensureAudio();
         playClick();
+        if (!el.game.hidden) startMusic();
+      } else {
+        stopMusic();
       }
     });
   }
